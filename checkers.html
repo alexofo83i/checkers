@@ -1,0 +1,206 @@
+<html>​<head><style>.body {
+  background-color: #eeeeee;
+}
+.box {
+  text-align: center;
+}
+.centered {
+  display: inline-block;
+  margin: 0;
+}
+.chess-board {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+.chess-board th {
+  padding: 0.5em;
+}
+.chess-board td {
+  border: 1px solid;
+  border-color : black;
+  width: 100px;
+  height: 100px;
+  text-align: center;
+  vertical-align: middle;
+}
+.chess-board .white {
+  background: #f0d9b5;
+  background-image: url("./static/images/square-white.jpg");
+}
+.chess-board .black {
+  background: #b58863;
+  background-image: url("./static/images/square-black.jpg");
+}
+
+h1 {
+  text-align: center;
+}
+
+.square{
+    min-width: 100px;
+    max-width: 100px;
+    min-height: 100px;
+    max-height: 100px;
+    border-radius:2px;
+    text-align: center;
+    line-height: 100px;
+    margin: 0px;
+    padding:0px;
+    transition: 0.5s;
+    position:relative;/*so that the draggable element will be 'absolute' relatively to this square element not to body element*/
+}
+
+.checker {
+  min-width: 90px;
+  max-width: 90px;
+  min-height: 90px;
+  max-height: 90px;
+  margin: 5px;
+  text-align: center;
+  line-height: 90px;
+  border-radius: 50%;
+  position: relative; /*so that the text of this element parent will be below this elemnt parent*/
+  top: 0;
+  left: 0;
+}
+
+.checker-black {
+  color: white;
+  background-color:black;
+}
+
+.checker-white {
+  color: black;
+  background-color: white;
+}
+
+.checker-green {
+  color: black;
+  background-color: green;
+  opacity: 40%;
+}</style>​​<title>​Square Drag and Drop​</title>​</head>​<body style=​"cursor:​ move;​">​<h1>​Squares Drag and Drop​</h1>​<div id=​"container"
+class=​"container">​<div id=​"checker-black"
+style=​"display:​ none;​ z-index:​ 0;​"
+class=​"checker checker-black ui-draggable-handle">​</div>​<div id=​"checker-white"
+style=​"display:​ none;​ z-index:​ 1;​"
+class=​"checker checker-white ui-draggable-handle">​</div>​<span id=​"chess-board"
+style=​"display:​ none;​">​4797eeaa-eb49-4567-8c97-8191d2d48517​</span>​<table class=​"chess-board">​<tbody>​<tr>​<th>​8​</th>​<td class=​"white"
+id=​"8a">​</td>​<td class=​"square black ui-droppable"
+id=​"8b">​<div id=​"w1"
+style=​"z-index:​ 2;​"
+class=​"checker checker-white ui-draggable-handle">​w1​</div>​</td>​<td class=​"white"
+id=​"8c">​</td>​<td class=​"square black ui-droppable"
+id=​"8d">​<div id=​"w2"
+style=​"z-index:​ 3;​"
+class=​"checker checker-white ui-draggable-handle">​w2​</div>​</td>​<td class=​"white"
+id=​"8e">​</td>​<td class=​"square black ui-droppable"
+id=​"8f">​<div id=​"w3"
+style=​"z-index:​ 4;​"
+class=​"checker checker-white ui-draggable-handle">​w3​</div>​</td>​<td class=​"white"
+id=​"8g">​</td>​<td class=​"square black ui-droppable"
+id=​"8h">​<div id=​"w4"
+style=​"z-index:​ 5;​"
+class=​"checker checker-white ui-draggable-handle">​w4​</div>​</td>​</tr>​<tr>​<th>​7​</th>​<td class=​"square black ui-droppable"
+id=​"7a">​<div id=​"w5"
+style=​"z-index:​ 6;​"
+class=​"checker checker-white ui-draggable-handle">​w5​</div>​</td>​<td class=​"white"
+id=​"7b">​</td>​<td class=​"square black ui-droppable"
+id=​"7c">​<div id=​"w6"
+style=​"z-index:​ 7;​"
+class=​"checker checker-white ui-draggable-handle">​w6​</div>​</td>​<td class=​"white"
+id=​"7d">​</td>​<td class=​"square black ui-droppable"
+id=​"7e">​<div id=​"w7"
+style=​"z-index:​ 8;​"
+class=​"checker checker-white ui-draggable-handle">​w7​</div>​</td>​<td class=​"white"
+id=​"7f">​</td>​<td class=​"square black ui-droppable"
+id=​"7g">​<div id=​"w8"
+style=​"z-index:​ 9;​"
+class=​"checker checker-white ui-draggable-handle">​w8​</div>​</td>​<td class=​"white"
+id=​"7h">​</td>​</tr>​<tr>​<th>​6​</th>​<td class=​"white"
+id=​"6a">​</td>​<td class=​"square black ui-droppable"
+id=​"6b">​<div id=​"w9"
+style=​"z-index:​ 23;​"
+class=​"checker checker-white ui-draggable-handle">​w9​</div>​</td>​<td class=​"white"
+id=​"6c">​</td>​<td class=​"square black ui-droppable"
+id=​"6d">​</td>​<td class=​"white"
+id=​"6e">​</td>​<td class=​"square black ui-droppable"
+id=​"6f">​<div id=​"w11"
+style=​"z-index:​ 10;​"
+class=​"checker checker-white ui-draggable-handle">​w11​</div>​</td>​<td class=​"white"
+id=​"6g">​</td>​<td class=​"square black ui-droppable"
+id=​"6h">​<div id=​"w12"
+style=​"z-index:​ 11;​"
+class=​"checker checker-white ui-draggable-handle">​w12​</div>​</td>​</tr>​<tr>​<th>​5​</th>​<td class=​"square black ui-droppable"
+id=​"5a">​</td>​<td class=​"white"
+id=​"5b">​</td>​<td class=​"square black ui-droppable"
+id=​"5c">​<div id=​"tmpb3"
+style=​"z-index:​ 27;​"
+class=​"checker ui-draggable-handle checker-green">​b3​</div>​</td>​<td class=​"white"
+id=​"5d">​</td>​<td class=​"square black ui-droppable"
+id=​"5e">​<div id=​"w10"
+style=​"z-index:​ 26;​"
+class=​"checker checker-white ui-draggable-handle">​w10​</div>​</td>​<td class=​"white"
+id=​"5f">​</td>​<td class=​"square black ui-droppable"
+id=​"5g">​</td>​<td class=​"white"
+id=​"5h">​</td>​</tr>​<tr>​<th>​4​</th>​<td class=​"white"
+id=​"4a">​</td>​<td class=​"square black ui-droppable"
+id=​"4b">​</td>​<td class=​"white"
+id=​"4c">​</td>​<td class=​"square black ui-droppable"
+id=​"4d">​<div id=​"b3"
+style=​"z-index:​ 27;​"
+class=​"checker checker-black ui-draggable-handle">​b3​</div>​<div style=​"z-index:​ 25;​ position:​ absolute;​ left:​ 114.5px;​ top:​ 73.5px;​"
+class=​"checker checker-black ui-draggable-handle ui-draggable-dragging">​b3​</div>​</td>​<td class=​"white"
+id=​"4e">​</td>​<td class=​"square black ui-droppable"
+id=​"4f">​</td>​<td class=​"white"
+id=​"4g">​</td>​<td class=​"square black ui-droppable"
+id=​"4h">​</td>​</tr>​<tr>​<th>​3​</th>​<td class=​"square black ui-droppable"
+id=​"3a">​<div id=​"b1"
+style=​"z-index:​ 12;​"
+class=​"checker checker-black ui-draggable-handle">​b1​</div>​</td>​<td class=​"white"
+id=​"3b">​</td>​<td class=​"square black ui-droppable"
+id=​"3c">​<div id=​"b2"
+style=​"z-index:​ 13;​"
+class=​"checker checker-black ui-draggable-handle">​b2​</div>​</td>​<td class=​"white"
+id=​"3d">​</td>​<td class=​"square black ui-droppable"
+id=​"3e">​<div id=​"tmpb3"
+style=​"z-index:​ 27;​"
+class=​"checker ui-draggable-handle checker-green">​b3​</div>​</td>​<td class=​"white"
+id=​"3f">​</td>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"3g">​<div id=​"b4"
+style=​"z-index:​ 14;​"
+class=​"checker checker-black ui-draggable-handle">​b4​</div>​</td>​<td class=​"white"
+id=​"3h">​</td>​</tr>​<tr>​<th>​2​</th>​<td class=​"white"
+id=​"2a">​</td>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"2b">​<div id=​"b5"
+style=​"z-index:​ 15;​"
+class=​"checker checker-black ui-draggable-handle">​b5​</div>​</td>​<td class=​"white"
+id=​"2c">​</td>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"2d">​<div id=​"b6"
+style=​"z-index:​ 16;​"
+class=​"checker checker-black ui-draggable-handle">​b6​</div>​</td>​<td class=​"white"
+id=​"2e">​</td>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"2f">​<div id=​"b7"
+style=​"z-index:​ 17;​"
+class=​"checker checker-black ui-draggable-handle">​b7​</div>​</td>​<td class=​"white"
+id=​"2g">​</td>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"2h">​<div id=​"b8"
+style=​"z-index:​ 18;​"
+class=​"checker checker-black ui-draggable-handle">​b8​</div>​</td>​</tr>​<tr>​<th>​1​</th>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"1a">​<div id=​"b9"
+style=​"z-index:​ 19;​"
+class=​"checker checker-black ui-draggable-handle">​b9​</div>​</td>​<td class=​"white"
+id=​"1b">​</td>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"1c">​<div id=​"b10"
+style=​"z-index:​ 20;​"
+class=​"checker checker-black ui-draggable-handle">​b10​</div>​</td>​<td class=​"white"
+id=​"1d">​</td>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"1e">​<div id=​"b11"
+style=​"z-index:​ 21;​"
+class=​"checker checker-black ui-draggable-handle">​b11​</div>​</td>​<td class=​"white"
+id=​"1f">​</td>​<td class=​"square black ui-droppable ui-droppable-active"
+id=​"1g">​<div id=​"b12"
+style=​"z-index:​ 22;​"
+class=​"checker checker-black ui-draggable-handle">​b12​</div>​</td>​<td class=​"white"
+id=​"1h">​</td>​</tr>​<tr>​<th>​</th>​<th>​a​</th>​<th>​b​</th>​<th>​c​</th>​<th>​d​</th>​<th>​e​</th>​<th>​f​</th>​<th>​g​</th>​<th>​h​</th>​</tr>​</tbody>​</table>​</div>
+</body>​
+</html>​

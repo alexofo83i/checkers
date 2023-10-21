@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="./static/stylesheets/checkers.css" />
+    <script language="javascript" src="./static/javascripts/jquery-3.6.3.min.js"></script>
+    <script language="javascript" src="./static/javascripts/jquery-ui-1.13.2.min.js"></script>
+    <!--script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="//ajax.aspnetcdn.com/ajax/jquery.ui/1.10.3/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.10.3/themes/sunny/jquery-ui.css"-->
+    <title>Square Drag and Drop</title>
+</head>
+
+<body>
+  <h1>Squares Drag and Drop</h1>
+  <div id="container" class="container">
+    <div id="checker-black" style="display: none;" class="checker checker-black"></div>
+    <div id="checker-white" style="display: none;" class="checker checker-white"></div>
+    <span id="chess-board" style="display: none;">{{.Name}}</span>
+     <table  class="chess-board" >
+    <tbody>
+      <tr>
+        <th class="th-x-black"></th>
+        <th class="th-x-black">a</th>
+        <th class="th-x-white">b</th>
+        <th class="th-x-black">c</th>
+        <th class="th-x-white">d</th>
+        <th class="th-x-black">e</th>
+        <th class="th-x-white">f</th>
+        <th class="th-x-black">g</th>
+        <th class="th-x-white">h</th>
+        <th class="th-x-white"></th>
+      </tr>
+     {{- template "table" . -}}
+     <tr>
+      <th class="th-x-black"></th>
+      <th class="th-x-black">a</th>
+      <th class="th-x-white">b</th>
+      <th class="th-x-black">c</th>
+      <th class="th-x-white">d</th>
+      <th class="th-x-black">e</th>
+      <th class="th-x-white">f</th>
+      <th class="th-x-black">g</th>
+      <th class="th-x-white">h</th>
+      <th class="th-x-white"></th>
+    </tr>
+      </tbody>
+    </table>
+  </div>  
+ </body>
+ <button id="donextbutton" type="button" onclick="makeNext()">Do Next Step</button>
+ <button id="donextbutton" type="button" onclick="makeBack()">Repeat Step</button>
+<script language="javascript" src="./static/javascripts/dragndrop.js"></script>
+<script language="javascript" src="./static/javascripts/state.js"></script>
+<script language="javascript">
+  updateGameState(false);
+</script>
+</html> 

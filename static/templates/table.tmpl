@@ -1,0 +1,26 @@
+{{define "table"}}
+{{$trs := .Trs}}
+{{- range $tr := $trs -}}
+{{- template "tr" $tr -}}
+{{- end -}}
+{{- end -}}
+
+{{define "tr"}}
+{{$tr := .}}<tr>
+<th class="{{if mod $tr.Th 2}}th-y-black{{else}}th-y-white{{end}}">{{$tr.Th}}</th>
+{{- range $td := $tr.Tds -}}
+{{- template "td" $td -}}
+{{- end -}}<th class="{{if mod $tr.Th 2}}th-y-white{{else}}th-y-black{{end}}">{{$tr.Th}}</th></tr>
+{{- end -}}
+
+{{define "td"}}
+{{- $td := . -}}<td class="{{$td.Class}}" id="{{$td.Id}}">
+{{/*- template "checker" $td.Ch -*/}}</td>
+{{- end -}}
+
+{{define "checker"}}
+{{- $ch := . -}}
+{{- if $ch.Id -}}
+<div id="{{$ch.Id}}" class="checker {{$ch.Class}}">{{$ch.Id}}</div>
+{{- end -}}
+{{- end -}}
