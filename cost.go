@@ -12,7 +12,7 @@ func (playState *PlayState) Cost() int {
 	cntW := 0
 	cntB := 0
 	for ch, _ := range playState.c2f {
-		var whoisch byte = playState.c2f[ch][0] //ch[0]
+		var whoisch byte = ch[0] // playState.c2f[ch][0] //
 		if whoisch == black {
 			cntB++
 		} else {
@@ -103,7 +103,9 @@ func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *Play
 	playStateBest := endStates[0]
 	// for i := endStatesCnt - 1; i >= 0; i-- {
 	for i := range endStates {
+		log.Default().Println("endstate: ", endStates[i].ToString())
 		if endStates[i] != nil {
+
 			cost := endStates[i].Cost()
 			if endStates[i].whodo == playStateInit.whodo && cost < costBest || endStates[i].whodo != playStateInit.whodo && cost > costBest {
 				playStateBest = endStates[i]
@@ -127,27 +129,27 @@ func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *Play
 	return playStateBest
 }
 
-func findBestOfTheBestPlayState(playStateInit *PlayState) *PlayState {
-	playStateInit.Cost()
-	// check if we need to make a kick, if kick then no any way, so just kick
-	playStateKill := findIfKickStatesExistsBeforeOfBestState(playStateInit)
-	if playStateKill != nil {
-		return playStateKill
-	}
-	// if no checkers were kicked then try find the best step
+// func findBestOfTheBestPlayState(playStateInit *PlayState) *PlayState {
+// 	playStateInit.Cost()
+// 	// check if we need to make a kick, if kick then no any way, so just kick
+// 	playStateKill := findIfKickStatesExistsBeforeOfBestState(playStateInit)
+// 	if playStateKill != nil {
+// 		return playStateKill
+// 	}
+// 	// if no checkers were kicked then try find the best step
 
-	endStates := findEndStates(playStateInit)
-	if endStates == nil || len(endStates) == 0 {
-		return nil
-	}
+// 	endStates := findEndStates(playStateInit)
+// 	if endStates == nil || len(endStates) == 0 {
+// 		return nil
+// 	}
 
-	playStateBest := findBestOfEndStates(playStateInit, endStates)
-	if playStateBest == nil {
-		playStateBest = playStateInit.nextStates[0]
-	}
+// 	playStateBest := findBestOfEndStates(playStateInit, endStates)
+// 	if playStateBest == nil {
+// 		playStateBest = playStateInit.nextStates[0]
+// 	}
 
-	return playStateBest
-}
+// 	return playStateBest
+// }
 
 func getParentState(playState *PlayState) *PlayState {
 	return playState.prevState
