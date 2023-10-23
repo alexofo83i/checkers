@@ -45,7 +45,7 @@ func findIfKickStatesExistsBeforeOfBestState(playStateInit *PlayState) *PlayStat
 	playStateInit.Cost()
 
 	var bestAlienScores int
-	if playStateInit.whodo == white {
+	if convertWhoDo2WhoDoNext(playStateInit.whodo) == black {
 		bestAlienScores = playStateInit.cntW
 	} else {
 		bestAlienScores = playStateInit.cntB
@@ -65,37 +65,37 @@ func findIfKickStatesExistsBeforeOfBestState(playStateInit *PlayState) *PlayStat
 	return playStateKill
 }
 
-func findEndStates(playStateInit *PlayState) []*PlayState {
-	endStates := make([]*PlayState, 0, 1000)
-	// visitedStates is needed to reduce cases when same state is present in the different levels and so lead to loop
-	visitedStates := make(map[uint32]*PlayState, 1000)
+// func findEndStates(playStateInit *PlayState) []*PlayState {
+// 	endStates := make([]*PlayState, 0, 1000)
+// 	// visitedStates is needed to reduce cases when same state is present in the different levels and so lead to loop
+// 	visitedStates := make(map[uint32]*PlayState, 1000)
 
-	nextStatesFinds := make([]*PlayState, 0, 10000)
-	nextStatesFinds = append(nextStatesFinds, playStateInit)
-	cnt := len(nextStatesFinds)
-	for i := 0; i < cnt; i++ {
-		nextstate := nextStatesFinds[i]
-		_, visited := visitedStates[nextstate.Hashcode()]
-		if !visited {
-			// store nextstate as visited
-			visitedStates[nextstate.Hashcode()] = nextstate
-			// get count of next states
-			cntNext := len(nextstate.nextStates)
-			// if next state exist then continue deep dive into tree by next level
-			if cntNext != 0 {
-				// proceed with next states loop
-				cnt += cntNext
-				nextStatesFinds = append(nextStatesFinds, nextstate.nextStates...)
-			} else {
-				// mark state as end state for getting cost
-				if nextstate.Cost() > 0 {
-					endStates = append(endStates, nextstate)
-				}
-			}
-		}
-	}
-	return endStates
-}
+// 	nextStatesFinds := make([]*PlayState, 0, 10000)
+// 	nextStatesFinds = append(nextStatesFinds, playStateInit)
+// 	cnt := len(nextStatesFinds)
+// 	for i := 0; i < cnt; i++ {
+// 		nextstate := nextStatesFinds[i]
+// 		_, visited := visitedStates[nextstate.Hashcode()]
+// 		if !visited {
+// 			// store nextstate as visited
+// 			visitedStates[nextstate.Hashcode()] = nextstate
+// 			// get count of next states
+// 			cntNext := len(nextstate.nextStates)
+// 			// if next state exist then continue deep dive into tree by next level
+// 			if cntNext != 0 {
+// 				// proceed with next states loop
+// 				cnt += cntNext
+// 				nextStatesFinds = append(nextStatesFinds, nextstate.nextStates...)
+// 			} else {
+// 				// mark state as end state for getting cost
+// 				if nextstate.Cost() > 0 {
+// 					endStates = append(endStates, nextstate)
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return endStates
+// }
 
 func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *PlayState {
 	// find best end state
