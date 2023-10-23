@@ -2,6 +2,7 @@ package main
 
 import (
 	"checkers/tools"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -96,6 +97,7 @@ func playWithMe(game *Game) {
 	// playStateNext => Game
 	var tableStateNew *Table
 	if playStateNext == nil {
+		log.Default().Println("sorry we could not calculate next step, so returned the same", playStateInit.ToString())
 		playStateNext = playStateInit
 	}
 	tableStateNew = playStateNext.convertPlayState2Table(game.State.Name)

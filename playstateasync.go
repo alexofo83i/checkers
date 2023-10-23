@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -80,29 +81,44 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 	// close channel for final states queue to be able to go through the loop in range
 	close(chanFinalPlayStatesQueue)
 
-	if playStateInit.nextStates == nil || len(playStateInit.nextStates) == 0 {
+	if playStateInit.nextStates == nil {
+		log.Default().Println("playStateInit.nextStates == nil")
+		return nil
+	}
+	if len(playStateInit.nextStates) == 0 {
+		log.Default().Println("len(playStateInit.nextStates)")
 		return nil
 	}
 
 	if len(chanFinalPlayStatesQueue) == 0 {
+		log.Default().Println("len(chanFinalPlayStatesQueue) == 0 ")
 		return nil
 	}
 
-	// final states were collected for back propagation of Cost
-	endStatesMap := make(map[uint32]*PlayState, len(chanFinalPlayStatesQueue))
-	for i := 0; i <= len(chanFinalPlayStatesQueue); i++ {
-		endState := <-chanFinalPlayStatesQueue
-		_, isExist := endStatesMap[endState.Hashcode()]
-		if !isExist {
-			endStatesMap[endState.Hashcode()] = endState
-			// log.Default().Println("endstate[", i, "]: "+endState.ToString())
-		}
-
-	}
-	endStatesSlice := maps.Values(endStatesMap)
-	playStateBest := findBestOfEndStates(playStateInit, endStatesSlice)
+	playStateBest := findIfKickStatesExistsBeforeOfBestState(playStateInit)
 	if playStateBest == nil {
-		playStateBest = playStateInit.nextStates[0]
+		// final states were collected for back propagation of Cost
+		endStatesMap := make(map[uint32]*PlayState, len(chanFinalPlayStatesQueue))
+		for i := 0; i <= len(chanFinalPlayStatesQueue); i++ {
+			endState := <-chanFinalPlayStatesQueue
+			_, isExist := endStatesMap[endState.Hashcode()]
+			if !isExist {
+				endStatesMap[endState.Hashcode()] = endState
+				// log.Default().Println("endstate[", i, "]: "+endState.ToString())
+			}
+
+		}
+		endStatesSlice := maps.Values(endStatesMap)
+		playStateBest = findBestOfEndStates(playStateInit, endStatesSlice)
+		if playStateBest == nil {
+			playStateBest = playStateInit.nextStates[0]
+			log.Default().Println("ohh!! findBestOfEndStates returned nil, so getting playStateInit.nextStates[0]", playStateBest.ToString())
+		} else {
+			log.Default().Println("yeaahooo!! findBestOfEndStates returned ", playStateBest.ToString())
+		}
+	} else {
+		log.Default().Println("findIfKickStatesExistsBeforeOfBestState returned nil")
 	}
+
 	return playStateBest
 }

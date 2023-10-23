@@ -21,6 +21,7 @@ func main() {
 	// remember that url for static resources should started from "/", for example: href="/static/stylesheets/checkers.css" or src="/static/javascripts/checkers.js"
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
+	log.Println("open in browser http://127.0.0.1:8090")
 	log.Println("use command to profile: go tool pprof [binary] http://127.0.0.1:8090/debug/pprof/profile")
 
 	err := http.ListenAndServe(":8090", nil)
