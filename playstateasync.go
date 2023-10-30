@@ -29,13 +29,13 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 	chanWorkItemsProducerQueue := make(chan WorkItem, MAX_PROD_QUEUE)
 	chanFinalPlayStatesQueue := make(chan *PlayState, MAX_END_QUEUE)
 	var wgFinish sync.WaitGroup
-	// var wgStart sync.WaitGroup
+	var wgStart sync.WaitGroup
 
-	// wgStart.Add(MAX_WORKERS)
+	wgStart.Add(MAX_WORKERS)
 	for i := 1; i <= MAX_WORKERS; i++ {
 		wgFinish.Add(1)
 		go func() {
-			// wgStart.Wait()
+			wgStart.Wait()
 			timerProducers := time.NewTimer(MAX_TIME_TO_WAIT)
 			for {
 				select {
@@ -62,9 +62,10 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 				}
 			}
 		}()
-		// wgStart.Done()
+		wgStart.Done()
 	}
 
+	wgStart.Wait()
 	// init first level producers
 	workItemQueue <- WorkItem{
 		workPlayState: playStateInit,
@@ -76,7 +77,7 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 	}
 
 	wgFinish.Wait()
-	// wgStart.Wait()
+
 	close(chanWorkItemsProducerQueue)
 	// close channel for final states queue to be able to go through the loop in range
 	close(chanFinalPlayStatesQueue)
@@ -86,7 +87,7 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 		return nil
 	}
 	if len(playStateInit.nextStates) == 0 {
-		log.Default().Println("len(playStateInit.nextStates)")
+		log.Default().Println("len(playStateInit.nextStates) == 0")
 		return nil
 	}
 
