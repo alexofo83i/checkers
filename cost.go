@@ -19,10 +19,11 @@ func (playState *PlayState) Cost() int {
 			cntW++
 		}
 	}
+	// need to increase priority of killing and defending from killing
 	if playState.whodo == black {
-		cost = cntB - cntW + (12 - cntW)
+		cost = 10*(cntB-cntW) + 3*(12-cntW)
 	} else {
-		cost = cntW - cntB + (12 - cntB)
+		cost = 10*(cntW-cntB) + 3*(12-cntB)
 	}
 	playState.cntB = cntB
 	playState.cntW = cntW
