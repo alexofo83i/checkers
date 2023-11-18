@@ -23,10 +23,10 @@ type PlayState struct {
 	whodo      byte
 	prevState  *PlayState
 	nextStates []*PlayState
-	cost       int // could be 0 or 1, so could be replaced by 1 byte
+	cost       int
 	cntW       int
 	cntB       int
-	hashcode   uint32 // need replace by uint32 ( 4 byte )
+	hashcode   uint32 // need to replace by uint32 ( 4 byte )
 	level      int
 	strCached  string
 	history    strings.Builder

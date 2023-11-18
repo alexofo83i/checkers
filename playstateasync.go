@@ -18,12 +18,12 @@ import (
 // [deepLevel 7 , len(workItemQueue) =  370135]
 
 const (
-	MAX_WORKERS        = 1
-	MAX_CONSUMER_QUEUE = 1000000
-	MAX_PRODUCER_SIZE  = 1000000
-	MAX_FINAL_QUEUE    = MAX_WORKERS + 1
-	MAX_TIME_TO_WAIT   = 10 * time.Second
-	MAX_LEVEL          = 4
+	MAX_WORKERS             = 100
+	MAX_CONSUMER_QUEUE_SIZE = 1000000
+	MAX_PRODUCER_QUEUE_SIZE = 1000000
+	MAX_FINAL_QUEUE_SIZE    = MAX_WORKERS + 1
+	MAX_TIME_TO_WAIT        = 10 * time.Second
+	MAX_LEVEL               = 4
 )
 
 type WorkItem struct {
@@ -31,32 +31,37 @@ type WorkItem struct {
 	deepLevel     int
 }
 
-func sendProducedPlayStates(deepLevel int, nextStates []*PlayState, chanWorkItemsConsumerQueue chan WorkItem, chanWorkItemsProducerQueue chan WorkItem) {
+func sendProducedPlayStates(deepLevel int, nextStates []*PlayState, chanWorkItemsConsumerQueue chan *WorkItem, chanWorkItemsProducerQueue chan *WorkItem) {
 	for i := range nextStates {
 		workItemNextLevel := WorkItem{
 			workPlayState: nextStates[i],
 			deepLevel:     deepLevel + 1,
 		}
 		if deepLevel > MAX_LEVEL {
-			chanWorkItemsConsumerQueue <- workItemNextLevel
+			chanWorkItemsConsumerQueue <- &workItemNextLevel
 		} else {
-			chanWorkItemsProducerQueue <- workItemNextLevel
+			chanWorkItemsProducerQueue <- &workItemNextLevel
 		}
 	}
 }
 
 func getNextLevelStep(playStateInit *PlayState) *PlayState {
 
-	chanWorkItemsProducerQueue := make(chan WorkItem, MAX_PRODUCER_SIZE)
-	chanWorkItemsConsumerQueue := make(chan WorkItem, MAX_CONSUMER_QUEUE)
-	chanFinalPlayStatesQueue := make(chan *PlayState, MAX_FINAL_QUEUE)
+	chanWorkItemsProducerQueue := make(chan *WorkItem, MAX_PRODUCER_QUEUE_SIZE)
+	chanWorkItemsConsumerQueue := make(chan *WorkItem, MAX_CONSUMER_QUEUE_SIZE)
+	chanFinalPlayStatesQueue := make(chan *PlayState, MAX_FINAL_QUEUE_SIZE)
 	var wgFinish sync.WaitGroup
 	var wgStart sync.WaitGroup
 
+	sizeMaxProducerQueue := len(chanWorkItemsProducerQueue)
+	sizeMaxConsumerQueue := len(chanWorkItemsConsumerQueue)
+	var sizeCurrProducerQueue, sizeCurrConsumerQueue int
 	wgStart.Add(MAX_WORKERS)
 	for i := 1; i <= MAX_WORKERS; i++ {
 		wgFinish.Add(1)
+		// i := i
 		go func() {
+			// threadId := i
 			wgStart.Wait()
 			var costBest int = 0
 			var playStateBest *PlayState
@@ -65,6 +70,10 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 			for {
 				select {
 				case workItem := <-chanWorkItemsProducerQueue:
+					sizeCurrProducerQueue = len(chanWorkItemsProducerQueue)
+					if sizeCurrProducerQueue > sizeMaxProducerQueue {
+						sizeMaxProducerQueue = sizeCurrProducerQueue
+					}
 					// first of all we need check if it is present in cache
 					// playStateFromCache, isCached := playStore.Get(workItem.workPlayState.Hashcode())
 					// if isCached && playStateFromCache.nextStates != nil {
@@ -87,6 +96,10 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 					sendProducedPlayStates(workItem.deepLevel, playStateFromQueue.nextStates, chanWorkItemsConsumerQueue, chanWorkItemsProducerQueue)
 					// }
 				case workItem := <-chanWorkItemsConsumerQueue:
+					sizeCurrConsumerQueue = len(chanWorkItemsConsumerQueue)
+					if sizeCurrConsumerQueue > sizeMaxConsumerQueue {
+						sizeMaxConsumerQueue = sizeCurrConsumerQueue
+					}
 					// no needed to wait until all endstates will be calculated
 					// we could find best state even right now!
 					if playStateBest != nil {
@@ -97,6 +110,7 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 						}
 					} else {
 						playStateBest = workItem.workPlayState
+						costBest = workItem.workPlayState.Cost()
 					}
 				case <-timerProducers.C:
 					// no needs to calculate all states,
@@ -108,8 +122,12 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 
 					// add to channel of final states for performing a back propagation
 					// within cost calculation to be able to choose correct state as next step
-					chanFinalPlayStatesQueue <- playStateBest
+					if playStateBest != nil {
+						chanFinalPlayStatesQueue <- playStateBest
+					}
 					wgFinish.Done()
+					// log.Default().Println("threadId: ", threadId, ", sizeMaxConsumerQueue: ", sizeMaxConsumerQueue)
+					// log.Default().Println("threadId: ", threadId, ", sizeMaxProducerQueue: ", sizeMaxProducerQueue)
 					return
 				}
 			}
@@ -119,7 +137,7 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 
 	wgStart.Wait()
 	// init first level producers
-	chanWorkItemsProducerQueue <- WorkItem{
+	chanWorkItemsProducerQueue <- &WorkItem{
 		workPlayState: playStateInit,
 		// initial deepLevel is 1,
 		// do not miss with playState.level because we could have playState.level == 100
@@ -155,13 +173,16 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 		endStatesMap := make(map[uint32]*PlayState, len(chanFinalPlayStatesQueue))
 		for i := 0; i <= len(chanFinalPlayStatesQueue); i++ {
 			endState := <-chanFinalPlayStatesQueue
-			_, isExist := endStatesMap[endState.Hashcode()]
-			if !isExist {
-				endStatesMap[endState.Hashcode()] = endState
-				// log.Default().Println("endstate[", i, "]: "+endState.ToString())
+			if endState != nil {
+				// check if exists or not. if not than adds.
+				_, isExist := endStatesMap[endState.Hashcode()]
+				if !isExist {
+					endStatesMap[endState.Hashcode()] = endState
+					// log.Default().Println("endstate[", i, "]: "+endState.ToString())
+				}
 			}
-
 		}
+		// at now we have reduced size of end states by excluding duplicates
 		endStatesSlice := maps.Values(endStatesMap)
 		playStateBest = findBestOfEndStates(playStateInit, endStatesSlice)
 		if playStateBest == nil {

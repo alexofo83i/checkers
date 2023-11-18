@@ -51,7 +51,7 @@ func (playState *PlayState) Hashcode() uint32 {
 		i++
 	}
 	sort.Strings(keys)
-	for i, _ := range keys {
+	for i := range keys {
 		val += keys[i] + playState.f2c[keys[i]]
 	}
 	playState.hashcode = hash(val)

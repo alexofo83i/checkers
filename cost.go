@@ -2,7 +2,7 @@ package main
 
 import "log"
 
-type Cost struct{}
+//type Cost struct{}
 
 func (playState *PlayState) Cost() int {
 	if playState.cost != 0 {
@@ -11,7 +11,7 @@ func (playState *PlayState) Cost() int {
 	cost := 0
 	cntW := 0
 	cntB := 0
-	for ch, _ := range playState.c2f {
+	for ch := range playState.c2f {
 		var whoisch byte = ch[0] // playState.c2f[ch][0] //
 		if whoisch == black {
 			cntB++
