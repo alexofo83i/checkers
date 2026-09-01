@@ -7,10 +7,7 @@ import (
 	"strings"
 )
 
-const (
-	black byte = 'b'
-	white byte = 'w'
-)
+
 
 // 1a -> w12
 // 1-8 a-h -> w/b 1-12
