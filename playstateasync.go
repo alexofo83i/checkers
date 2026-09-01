@@ -22,7 +22,7 @@ const (
 	MAX_CONSUMER_QUEUE_SIZE = 1000000
 	MAX_PRODUCER_QUEUE_SIZE = 1000000
 	MAX_FINAL_QUEUE_SIZE    = MAX_WORKERS + 1
-	MAX_TIME_TO_WAIT        = 10 * time.Second
+	MAX_TIME_TO_WAIT        = 30 * time.Second
 	MAX_LEVEL               = 4
 )
 
@@ -59,13 +59,14 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 	wgStart.Add(MAX_WORKERS)
 	for i := 1; i <= MAX_WORKERS; i++ {
 		wgFinish.Add(1)
-		// i := i
 		go func() {
-			// threadId := i
 			wgStart.Wait()
 			var costBest int = 0
 			var playStateBest *PlayState
 			timerProducers := time.NewTimer(MAX_TIME_TO_WAIT)
+
+			// Целевой игрок – тот, чей ход наступает после хода текущего (playStateInit.whodo)
+			targetWhodo := convertWhoDo2WhoDoNext(playStateInit.whodo)
 
 			for {
 				select {
@@ -74,12 +75,6 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 					if sizeCurrProducerQueue > sizeMaxProducerQueue {
 						sizeMaxProducerQueue = sizeCurrProducerQueue
 					}
-					// first of all we need check if it is present in cache
-					// playStateFromCache, isCached := playStore.Get(workItem.workPlayState.Hashcode())
-					// if isCached && playStateFromCache.nextStates != nil {
-					// 	sendProducedPlayStates(workItem.deepLevel, playStateFromCache.nextStates, chanWorkItemsConsumerQueue, chanWorkItemsProducerQueue)
-					// } else {
-					// playState is not cached, so let's calculate possible states for each checker
 					playStateFromQueue := workItem.workPlayState
 					checkers := playStateFromQueue.getCheckersWhoDo(convertWhoDo2WhoDoNext(playStateFromQueue.whodo))
 					allPossiblePlayStates := make([]*PlayState, 0, 16)
@@ -90,44 +85,29 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 						}
 					}
 					playStateFromQueue.nextStates = allPossiblePlayStates
-					// if we calculated next states then we need to store initial playstate linked with all next states
 					playStore.Store(playStateFromQueue)
 
 					sendProducedPlayStates(workItem.deepLevel, playStateFromQueue.nextStates, chanWorkItemsConsumerQueue, chanWorkItemsProducerQueue)
-					// }
+
 				case workItem := <-chanWorkItemsConsumerQueue:
 					sizeCurrConsumerQueue = len(chanWorkItemsConsumerQueue)
 					if sizeCurrConsumerQueue > sizeMaxConsumerQueue {
 						sizeMaxConsumerQueue = sizeCurrConsumerQueue
 					}
-					// no needed to wait until all endstates will be calculated
-					// we could find best state even right now!
-					if playStateBest != nil {
+					// Рассматриваем только состояния после хода текущего игрока (ход перешёл к противнику)
+					if workItem.workPlayState.whodo == targetWhodo {
 						cost := workItem.workPlayState.Cost()
-						if workItem.workPlayState.whodo == playStateInit.whodo && cost < costBest || workItem.workPlayState.whodo != playStateInit.whodo && cost > costBest {
+						if playStateBest == nil || cost < costBest {
 							playStateBest = workItem.workPlayState
 							costBest = cost
 						}
-					} else {
-						playStateBest = workItem.workPlayState
-						costBest = workItem.workPlayState.Cost()
 					}
-				case <-timerProducers.C:
-					// no needs to calculate all states,
-					// we could get only cached or piece of set of calculated states for current moment.
-					// if no any final states calculated for required period of time
-					// then random ( of first state ) should be taken because no back propagation is possible in this case
-					// don't let your brain exploded
-					// don't let your host too ( it could be overloaded )
 
-					// add to channel of final states for performing a back propagation
-					// within cost calculation to be able to choose correct state as next step
+				case <-timerProducers.C:
 					if playStateBest != nil {
 						chanFinalPlayStatesQueue <- playStateBest
 					}
 					wgFinish.Done()
-					// log.Default().Println("threadId: ", threadId, ", sizeMaxConsumerQueue: ", sizeMaxConsumerQueue)
-					// log.Default().Println("threadId: ", threadId, ", sizeMaxProducerQueue: ", sizeMaxProducerQueue)
 					return
 				}
 			}
@@ -136,18 +116,13 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 	}
 
 	wgStart.Wait()
-	// init first level producers
 	chanWorkItemsProducerQueue <- &WorkItem{
 		workPlayState: playStateInit,
-		// initial deepLevel is 1,
-		// do not miss with playState.level because we could have playState.level == 100
-		// and we need next level that always will be +deepLevel which would be increased each time
-		deepLevel: 1,
+		deepLevel:     1,
 	}
 
 	wgFinish.Wait()
 
-	// close channel for final states queue to be able to go through the loop in range
 	close(chanWorkItemsProducerQueue)
 	close(chanWorkItemsConsumerQueue)
 	close(chanFinalPlayStatesQueue)
@@ -169,20 +144,16 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 	playStateBest := findIfKickStatesExistsBeforeOfBestState(playStateInit)
 	if playStateBest == nil {
 		log.Default().Println("findIfKickStatesExistsBeforeOfBestState returned nil")
-		// final states were collected for back propagation of Cost
 		endStatesMap := make(map[uint32]*PlayState, len(chanFinalPlayStatesQueue))
 		for i := 0; i <= len(chanFinalPlayStatesQueue); i++ {
 			endState := <-chanFinalPlayStatesQueue
 			if endState != nil {
-				// check if exists or not. if not than adds.
 				_, isExist := endStatesMap[endState.Hashcode()]
 				if !isExist {
 					endStatesMap[endState.Hashcode()] = endState
-					// log.Default().Println("endstate[", i, "]: "+endState.ToString())
 				}
 			}
 		}
-		// at now we have reduced size of end states by excluding duplicates
 		endStatesSlice := maps.Values(endStatesMap)
 		playStateBest = findBestOfEndStates(playStateInit, endStatesSlice)
 		if playStateBest == nil {

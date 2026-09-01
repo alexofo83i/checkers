@@ -23,7 +23,6 @@ func (playstore *PlayStore) Get(key uint32) (*PlayState, bool) {
 	defer playstore.mx.RUnlock()
 	v, ok := playStore.playStates[key]
 	return v, ok
-	// return nil, false
 }
 
 func (playstore *PlayStore) Store(playState *PlayState) {
@@ -43,7 +42,6 @@ func (playState *PlayState) Hashcode() uint32 {
 		return playState.hashcode
 	}
 	val := string(playState.whodo)
-	//+ string(playState.level)
 	i := 0
 	keys := make([]string, len(playState.f2c), len(playState.f2c))
 	for k := range playState.f2c {

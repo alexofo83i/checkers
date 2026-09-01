@@ -7,23 +7,16 @@ import (
 	"strings"
 )
 
-
-
-// 1a -> w12
-// 1-8 a-h -> w/b 1-12
-// 1 + 1 -> 1 + 2 = 5
-// 1
-
 type PlayState struct {
-	f2c        map[string]string // each field could be represented by 5 bits ( 32 states )
-	c2f        map[string]string // each kind of checker could be represented by 1 bit ( w / b ) and 1 bit ( checker or queen )
+	f2c        map[string]string
+	c2f        map[string]string
 	whodo      byte
 	prevState  *PlayState
 	nextStates []*PlayState
 	cost       int
 	cntW       int
 	cntB       int
-	hashcode   uint32 // need to replace by uint32 ( 4 byte )
+	hashcode   uint32
 	level      int
 	strCached  string
 	history    strings.Builder
@@ -53,7 +46,6 @@ func (state *PlayState) ToString() string {
 	b.WriteString("\n")
 	for i := 8; i >= 1; i-- {
 		k := 1
-		// b.WriteString("|")
 		for j := 'a'; j <= 'h'; j++ {
 			if i%2+1 == k%2+1 || i%2 == k%2 {
 				chId := tools.IntToString(i) + string(j)
@@ -80,10 +72,6 @@ func (state *PlayState) ToString() string {
 	return state.strCached
 }
 
-func UInt32ToString(u uint32) {
-	panic("unimplemented")
-}
-
 func playWithMe(game *Game) {
 	if game == nil {
 		return
@@ -91,18 +79,12 @@ func playWithMe(game *Game) {
 
 	playStateInit := game.State.convertGame2PlayState()
 	playStateNext := getNextLevelStep(playStateInit)
-	// playStateNext => Game
 	var tableStateNew *Table
 	if playStateNext == nil {
 		log.Default().Println("sorry we could not calculate next step, so returned the same", playStateInit.ToString())
 		playStateNext = playStateInit
 	}
 	tableStateNew = playStateNext.convertPlayState2Table(game.State.Name)
-	// if playStateNext.whodo != black {
-	// 	tableStateNew.Whodo = "checkers-black"
-	// } else {
-	// 	tableStateNew.Whodo = "checkers-white"
-	// }
 	fillPlayStateByNextSteps(playStateNext, tableStateNew, playStateInit.whodo)
 
 	game.State = *tableStateNew
@@ -149,8 +131,6 @@ func copyMap[K, V comparable](m map[K]V) map[K]V {
 
 func (playState *PlayState) MakeNextKick(ch string, fieldTo *Field, ch2kick string, level int) *PlayState {
 	playStateKick := playState.MakeNextStep(ch, fieldTo, level)
-	// playStateKick.kicked = playStateKick.kicked + 1
-	// playStateKick.cost = playStateKick.cost + 1
 	field2Kick := playStateKick.c2f[ch2kick]
 
 	playStateKick.history.WriteString(":")
@@ -162,50 +142,3 @@ func (playState *PlayState) MakeNextKick(ch string, fieldTo *Field, ch2kick stri
 
 	return playStateKick
 }
-
-// func getNextLevelStep(playStateInit *PlayState, level uint32) {
-// 	if level > maxLevel {
-// 		return
-// 	}
-
-// 	checkers := playStateInit.getCheckersWhoDo(convertWhoDo2WhoDoNext(playStateInit.whodo))
-
-// 	c1 := make(chan []*PlayState, maxdop)
-// 	cnt := 0
-// 	for i := len(checkers) - 1; i >= 0; i-- {
-// 		i := i
-// 		go func() {
-// 			c1 <- getPossiblePlayStates(playStateInit, checkers[i], false, level, nil)
-// 		}()
-// 		cnt++
-// 	}
-// 	allPossiblePlayStates := make([]*PlayState, 0, 100)
-// 	for i := 0; i < cnt; i++ {
-// 		somePossiblePlayStates := <-c1
-// 		if len(somePossiblePlayStates) != 0 {
-// 			allPossiblePlayStates = append(allPossiblePlayStates, somePossiblePlayStates...)
-// 		}
-// 	}
-// 	playStateInit.nextStates = allPossiblePlayStates
-// 	cnt = 0
-// 	c2 := make(chan int, maxdop)
-// 	for i := len(allPossiblePlayStates) - 1; i >= 0; i-- {
-// 		// possiblePlayState := possiblePlayState
-// 		possibleStateFromStore, cached := playStore.Get(allPossiblePlayStates[i].Hashcode())
-// 		if !cached || possibleStateFromStore.nextStates == nil {
-// 			i := i
-// 			level := level
-// 			go func() {
-// 				getNextLevelStep(allPossiblePlayStates[i], level+1)
-// 				c2 <- 1
-// 			}()
-// 			cnt++
-// 		} else {
-// 			allPossiblePlayStates[i] = possibleStateFromStore
-// 		}
-// 	}
-// 	for i := 0; i < cnt; i++ {
-// 		<-c2
-// 	}
-// 	playStore.Store(playStateInit)
-// }

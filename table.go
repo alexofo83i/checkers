@@ -15,7 +15,6 @@ var templates = template.Must(template.New("table.html").Funcs(funcs).ParseFiles
 
 type Checker struct {
 	Id string `json:"id"`
-	//Class string `json:"cl"`
 }
 
 type Td struct {
@@ -76,8 +75,6 @@ func initTable(isexist func(chid string) bool) *Table {
 		tds := make([]Td, 8, 8)
 		for j := 'a'; j <= 'h'; j++ {
 			td := Td{
-				// do not forget that "j" is not string because of literal
-				// Id: fmt.Sprint(i) + string(j),
 				Id: strconv.Itoa(i) + string(j),
 			}
 			if i%2+1 == k%2+1 || i%2 == k%2 {
@@ -86,19 +83,13 @@ func initTable(isexist func(chid string) bool) *Table {
 				if i >= 6 && i <= 8 {
 					chid := "b" + fmt.Sprint(b)
 					if isexist(chid) {
-						td.Ch = Checker{
-							Id: chid,
-							//Class: "checker-white",
-						}
+						td.Ch = Checker{Id: chid}
 					}
 					b++
 				} else if i >= 1 && i <= 3 {
 					chid := "w" + fmt.Sprint(w)
 					if isexist(chid) {
-						td.Ch = Checker{
-							Id: chid,
-							//Class: "checker-black",
-						}
+						td.Ch = Checker{Id: chid}
 					}
 					w++
 				}

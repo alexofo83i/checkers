@@ -6,25 +6,18 @@ const (
 	black byte = 'b'
 	white byte = 'w'
 
-	// Базовые веса
-	WEIGHT_MATERIAL  = 100 // УВЕЛИЧИВАЕМ - потеря шашки становится критичной
-	WEIGHT_POTENTIAL = 5   // Уменьшаем, чтобы не перебивал материал
-
-	// Новые агрессивные веса
-	WEIGHT_THREAT        = 15  // Угроза съесть шашку соперника
-	WEIGHT_DEFENSE       = 20  // Защита своих шашек (наличие поддержки)
-	WEIGHT_ATTACK        = 12  // Атака на шашки соперника
-	WEIGHT_VULNERABILITY = -30 // Штраф за уязвимые шашки (которые могут съесть)
-
-	// Позиционные веса
-	WEIGHT_CENTER   = 3  // Центр важен, но не критичен
-	WEIGHT_MOBILITY = 2  // Мобильность важна для атаки
-	WEIGHT_EDGE     = -2 // Штраф за край (там легче съесть)
-	WEIGHT_BACK_ROW = 4  // Защита заднего ряда (чтобы не дать пройти в дамки)
-
-	// Специальные веса
-	WEIGHT_EXCHANGE = 25 // Бонус за выгодный размен
-	WEIGHT_PIN      = 15 // Штраф за "зажатые" шашки (которые не могут ходить)
+	WEIGHT_MATERIAL      = 100
+	WEIGHT_POTENTIAL     = 5
+	WEIGHT_THREAT        = 15
+	WEIGHT_DEFENSE       = 20
+	WEIGHT_ATTACK        = 12
+	WEIGHT_VULNERABILITY = -30
+	WEIGHT_CENTER        = 3
+	WEIGHT_MOBILITY      = 2
+	WEIGHT_EDGE          = -2
+	WEIGHT_BACK_ROW      = 4
+	WEIGHT_EXCHANGE      = 25
+	WEIGHT_PIN           = 15
 )
 
 func (playState *PlayState) Cost() int {
@@ -36,13 +29,11 @@ func (playState *PlayState) Cost() int {
 		playState.countPieces()
 	}
 
-	// Основные факторы
 	materialDiff := playState.calculateMaterialDiff()
-	threats := playState.calculateThreats()                 // Угрозы съесть чужие
-	vulnerabilities := playState.calculateVulnerabilities() // Уязвимость своих
-	defense := playState.calculateDefense()                 // Защищенность своих
-	attackPotential := playState.calculateAttackPotential() // Потенциал атаки
-
+	threats := playState.calculateThreats()
+	vulnerabilities := playState.calculateVulnerabilities()
+	defense := playState.calculateDefense()
+	attackPotential := playState.calculateAttackPotential()
 	centerDiff := playState.calculateCenterControl()
 	mobilityDiff := playState.calculateMobility()
 	edgePenalty := playState.calculateEdgePenalty()
@@ -63,7 +54,6 @@ func (playState *PlayState) Cost() int {
 			WEIGHT_BACK_ROW*backRowBonus +
 			WEIGHT_PIN*pinnedPenalty.black
 	} else {
-		// Для белых меняем знаки
 		cost = WEIGHT_MATERIAL*(-materialDiff) +
 			WEIGHT_POTENTIAL*(12-playState.cntB) +
 			WEIGHT_THREAT*threats.white +
@@ -81,12 +71,8 @@ func (playState *PlayState) Cost() int {
 	return playState.cost
 }
 
-// calculateMaterialDiff - полная оценка материального преимущества
 func (playState *PlayState) calculateMaterialDiff() int {
-	// Базовая разница в количестве
 	baseDiff := playState.cntW - playState.cntB
-
-	// Позиционная ценность шашек
 	positionalValueW := 0
 	positionalValueB := 0
 
@@ -98,16 +84,10 @@ func (playState *PlayState) calculateMaterialDiff() int {
 			positionalValueB += posValue
 		}
 	}
-
-	// Для черных: cntB - cntW + (positionalValueB - positionalValueW)
-	// Для белых: cntW - cntB + (positionalValueW - positionalValueB)
-	// Используем baseDiff в логировании или для отладки
-	_ = baseDiff // можно закомментировать, если не нужна
-
+	_ = baseDiff
 	return (playState.cntB - playState.cntW) + (positionalValueB - positionalValueW)
 }
 
-// getPieceValue - улучшенная версия с использованием color
 func (playState *PlayState) getPieceValue(pos string) int {
 	ch, exists := playState.c2f[pos]
 	if !exists {
@@ -117,25 +97,18 @@ func (playState *PlayState) getPieceValue(pos string) int {
 
 	value := 1
 
-	// Центральные поля
 	if isCenterSquare(pos) {
 		value += 2
 	}
-
-	// Штраф за край
 	if len(pos) > 0 && (pos[0] == 'a' || pos[0] == 'h') {
 		value -= 1
 	}
-
-	// Бонус за возможность атаки
 	if playState.canAttackFrom(pos) {
 		value += 2
 	}
 
-	// Бонус за близость к превращению в дамку
 	row := pos[1]
 	if color == white {
-		// Белые стремятся к 8-му ряду
 		switch row {
 		case '7':
 			value += 3
@@ -144,13 +117,10 @@ func (playState *PlayState) getPieceValue(pos string) int {
 		case '5':
 			value += 1
 		}
-
-		// Защита начальных шашек
 		if row == '1' && (pos[0] == 'b' || pos[0] == 'g') {
-			value += 1 // важные центральные шашки в начале
+			value += 1
 		}
-	} else { // black
-		// Черные стремятся к 1-му ряду
+	} else {
 		switch row {
 		case '2':
 			value += 3
@@ -159,20 +129,15 @@ func (playState *PlayState) getPieceValue(pos string) int {
 		case '4':
 			value += 1
 		}
-
-		// Защита черных шашек
 		if row == '8' && (pos[0] == 'b' || pos[0] == 'g') {
 			value += 1
 		}
 	}
-
 	return value
 }
 
-// Угрозы: сколько шашек соперника можно съесть
 func (playState *PlayState) calculateThreats() struct{ white, black int } {
 	threats := struct{ white, black int }{0, 0}
-
 	for pos, ch := range playState.c2f {
 		if ch[0] == white {
 			threats.white += playState.countAttacksFrom(pos)
@@ -180,11 +145,9 @@ func (playState *PlayState) calculateThreats() struct{ white, black int } {
 			threats.black += playState.countAttacksFrom(pos)
 		}
 	}
-
 	return threats
 }
 
-// Подсчет количества атак с позиции
 func (playState *PlayState) countAttacksFrom(pos string) int {
 	attacks := 0
 	color := playState.c2f[pos][0]
@@ -192,41 +155,29 @@ func (playState *PlayState) countAttacksFrom(pos string) int {
 	if color == white {
 		opponent = black
 	}
-
-	// Направления для атаки (вперед и назад для простых шашек)
 	directions := []struct{ dx, dy int }{
-		{-1, 1}, {1, 1}, // вперед
-		{-1, -1}, {1, -1}, // назад (для дамок, но пока для всех)
+		{-1, 1}, {1, 1}, {-1, -1}, {1, -1},
 	}
-
 	for _, dir := range directions {
-		// Позиция потенциальной жертвы
 		victimPos := shiftPos(pos, dir.dx, dir.dy)
 		if victimPos == "" {
 			continue
 		}
-
-		// Позиция для прыжка
 		jumpPos := shiftPos(victimPos, dir.dx, dir.dy)
 		if jumpPos == "" {
 			continue
 		}
-
-		// Проверяем, есть ли шашка соперника и свободно ли место за ней
 		if victim, exists := playState.c2f[victimPos]; exists && victim[0] == opponent {
 			if _, exists := playState.c2f[jumpPos]; !exists {
 				attacks++
 			}
 		}
 	}
-
 	return attacks
 }
 
-// Уязвимость: сколько способов съесть наши шашки
 func (playState *PlayState) calculateVulnerabilities() struct{ white, black int } {
 	vuln := struct{ white, black int }{0, 0}
-
 	for pos, ch := range playState.c2f {
 		if ch[0] == white {
 			vuln.white += playState.countVulnerabilityAt(pos)
@@ -234,49 +185,35 @@ func (playState *PlayState) calculateVulnerabilities() struct{ white, black int 
 			vuln.black += playState.countVulnerabilityAt(pos)
 		}
 	}
-
 	return vuln
 }
 
-// Подсчет уязвимости конкретной шашки
 func (playState *PlayState) countVulnerabilityAt(pos string) int {
 	color := playState.c2f[pos][0]
 	opponent := white
 	if color == white {
 		opponent = black
 	}
-
 	vulnerabilities := 0
-
-	// Проверяем все возможные атаки со стороны соперника
 	directions := []struct{ dx, dy int }{
-		{-1, 1}, {1, 1}, // атака спереди
-		{-1, -1}, {1, -1}, // атака сзади
+		{-1, 1}, {1, 1}, {-1, -1}, {1, -1},
 	}
-
 	for _, dir := range directions {
-		// Откуда может прилететь атака
 		attackerPos := shiftPos(pos, -dir.dx, -dir.dy)
 		if attackerPos == "" {
 			continue
 		}
-
-		// Проверяем, есть ли атакующий
 		if attacker, exists := playState.c2f[attackerPos]; exists && attacker[0] == opponent {
-			// Проверяем, может ли он съесть
 			if playState.canAttackFrom(attackerPos) {
 				vulnerabilities++
 			}
 		}
 	}
-
 	return vulnerabilities
 }
 
-// Защищенность: сколько союзников защищают шашку
 func (playState *PlayState) calculateDefense() struct{ white, black int } {
 	defense := struct{ white, black int }{0, 0}
-
 	for pos, ch := range playState.c2f {
 		if ch[0] == white {
 			defense.white += playState.countDefenders(pos)
@@ -284,40 +221,29 @@ func (playState *PlayState) calculateDefense() struct{ white, black int } {
 			defense.black += playState.countDefenders(pos)
 		}
 	}
-
 	return defense
 }
 
-// Подсчет защитников для позиции
 func (playState *PlayState) countDefenders(pos string) int {
 	color := playState.c2f[pos][0]
 	defenders := 0
-
-	// Проверяем диагонали для поиска защитников
 	directions := []struct{ dx, dy int }{
-		{-1, -1}, {1, -1}, // сзади-сбоку
-		{-1, 1}, {1, 1}, // спереди-сбоку
+		{-1, -1}, {1, -1}, {-1, 1}, {1, 1},
 	}
-
 	for _, dir := range directions {
 		defenderPos := shiftPos(pos, -dir.dx, -dir.dy)
 		if defenderPos == "" {
 			continue
 		}
-
 		if defender, exists := playState.c2f[defenderPos]; exists && defender[0] == color {
-			// Проверяем, может ли защитник прикрыть (находится на одной диагонали)
 			defenders++
 		}
 	}
-
 	return defenders
 }
 
-// Потенциал атаки (шашки, которые могут атаковать в следующем ходу)
 func (playState *PlayState) calculateAttackPotential() struct{ white, black int } {
 	potential := struct{ white, black int }{0, 0}
-
 	for pos, ch := range playState.c2f {
 		if ch[0] == white && playState.canAttackFrom(pos) {
 			potential.white++
@@ -325,19 +251,15 @@ func (playState *PlayState) calculateAttackPotential() struct{ white, black int 
 			potential.black++
 		}
 	}
-
 	return potential
 }
 
-// Может ли шашка с этой позиции атаковать
 func (playState *PlayState) canAttackFrom(pos string) bool {
 	return playState.countAttacksFrom(pos) > 0
 }
 
-// Штраф за "зажатые" шашки (которые не могут ходить)
 func (playState *PlayState) calculatePinnedPenalty() struct{ white, black int } {
 	pinned := struct{ white, black int }{0, 0}
-
 	for pos, ch := range playState.c2f {
 		if !playState.hasAnyMove(pos) {
 			if ch[0] == white {
@@ -347,41 +269,24 @@ func (playState *PlayState) calculatePinnedPenalty() struct{ white, black int } 
 			}
 		}
 	}
-
 	return pinned
 }
 
-// Есть ли у шашки хоть какой-то ход
 func (playState *PlayState) hasAnyMove(pos string) bool {
 	ch, exists := playState.c2f[pos]
 	if !exists {
 		return false
 	}
 	color := ch[0]
-
-	// Направления зависят от цвета
 	var directions []struct{ dx, dy int }
-
 	if color == white {
-		// Белые ходят вверх
-		directions = []struct{ dx, dy int }{
-			{-1, 1}, // влево-вверх
-			{1, 1},  // вправо-вверх
-		}
+		directions = []struct{ dx, dy int }{{-1, 1}, {1, 1}}
 	} else {
-		// Черные ходят вниз
-		directions = []struct{ dx, dy int }{
-			{-1, -1}, // влево-вниз
-			{1, -1},  // вправо-вниз
-		}
+		directions = []struct{ dx, dy int }{{-1, -1}, {1, -1}}
 	}
-
-	// Если шашка может атаковать, это уже ход
 	if playState.canAttackFrom(pos) {
 		return true
 	}
-
-	// Проверяем простые ходы
 	for _, dir := range directions {
 		newPos := shiftPos(pos, dir.dx, dir.dy)
 		if newPos != "" {
@@ -390,26 +295,20 @@ func (playState *PlayState) hasAnyMove(pos string) bool {
 			}
 		}
 	}
-
 	return false
 }
 
-// Вспомогательные функции
 func shiftPos(pos string, dx, dy int) string {
 	if len(pos) != 2 {
 		return ""
 	}
-
 	col := pos[0]
 	row := pos[1]
-
 	newCol := byte(int(col) + dx)
 	newRow := byte(int(row) + dy)
-
 	if newCol < 'a' || newCol > 'h' || newRow < '1' || newRow > '8' {
 		return ""
 	}
-
 	return string([]byte{newCol, newRow})
 }
 
@@ -424,7 +323,6 @@ func isCenterSquare(pos string) bool {
 	return centerCols[col] && centerRows[row]
 }
 
-// countPieces - подсчет количества шашек
 func (playState *PlayState) countPieces() {
 	cntW := 0
 	cntB := 0
@@ -439,40 +337,31 @@ func (playState *PlayState) countPieces() {
 	playState.cntB = cntB
 }
 
-// calculateCenterControl - расчет контроля центра
 func (playState *PlayState) calculateCenterControl() int {
 	centerW := 0
 	centerB := 0
-
-	// Центральные поля
 	centerSquares := map[string]bool{
 		"c3": true, "d3": true, "e3": true, "f3": true,
 		"c4": true, "d4": true, "e4": true, "f4": true,
 		"c5": true, "d5": true, "e5": true, "f5": true,
 		"c6": true, "d6": true, "e6": true, "f6": true,
 	}
-
 	for pos, ch := range playState.c2f {
 		if !centerSquares[pos] {
 			continue
 		}
-
 		if ch[0] == white {
 			centerW++
 		} else {
 			centerB++
 		}
 	}
-
 	return centerW - centerB
 }
 
-// calculateMobility - расчет мобильности
 func (playState *PlayState) calculateMobility() int {
 	mobilityW := 0
 	mobilityB := 0
-
-	// Простой подсчет мобильности без генерации всех ходов
 	for pos, ch := range playState.c2f {
 		if ch[0] == white {
 			mobilityW += playState.countSimpleMoves(pos)
@@ -480,110 +369,77 @@ func (playState *PlayState) calculateMobility() int {
 			mobilityB += playState.countSimpleMoves(pos)
 		}
 	}
-
 	return mobilityW - mobilityB
 }
 
-// countSimpleMoves - подсчет простых ходов для шашки (без учета взятий)
 func (playState *PlayState) countSimpleMoves(pos string) int {
 	color := playState.c2f[pos][0]
 	moves := 0
-
-	// Направления для простых ходов
 	var directions []struct{ dx, dy int }
-
 	if color == white {
-		// Белые ходят вверх (увеличение номера ряда)
-		directions = []struct{ dx, dy int }{
-			{-1, 1}, // влево-вверх
-			{1, 1},  // вправо-вверх
-		}
+		directions = []struct{ dx, dy int }{{-1, 1}, {1, 1}}
 	} else {
-		// Черные ходят вниз (уменьшение номера ряда)
-		directions = []struct{ dx, dy int }{
-			{-1, -1}, // влево-вниз
-			{1, -1},  // вправо-вниз
-		}
+		directions = []struct{ dx, dy int }{{-1, -1}, {1, -1}}
 	}
-
 	for _, dir := range directions {
 		newPos := shiftPos(pos, dir.dx, dir.dy)
 		if newPos != "" {
-			// Проверяем, свободно ли поле
 			if _, exists := playState.c2f[newPos]; !exists {
 				moves++
 			}
 		}
 	}
-
 	return moves
 }
 
-// calculateEdgePenalty - штраф за нахождение на краю
 func (playState *PlayState) calculateEdgePenalty() int {
 	edgeW := 0
 	edgeB := 0
-
 	edgeCols := map[byte]bool{'a': true, 'h': true}
-
 	for pos, ch := range playState.c2f {
 		if len(pos) < 2 {
 			continue
 		}
-
 		col := pos[0]
 		if !edgeCols[col] {
 			continue
 		}
-
 		if ch[0] == white {
 			edgeW++
 		} else {
 			edgeB++
 		}
 	}
-
 	return edgeW - edgeB
 }
 
-// calculateBackRowBonus - бонус за шашки на последнем ряду
 func (playState *PlayState) calculateBackRowBonus() int {
-	backRowW := 0 // белые на 1-м ряду
-	backRowB := 0 // черные на 8-м ряду
-
+	backRowW := 0
+	backRowB := 0
 	for pos, ch := range playState.c2f {
 		if len(pos) < 2 {
 			continue
 		}
-
 		row := pos[1]
-
 		if ch[0] == white && row == '1' {
 			backRowW++
 		} else if ch[0] == black && row == '8' {
 			backRowB++
 		}
 	}
-
 	return backRowW - backRowB
 }
-
-// --- 8< -------------------------------------------------------------------------
 
 func findIfKickStatesExistsBeforeOfBestState(playStateInit *PlayState) *PlayState {
 	if playStateInit.nextStates == nil {
 		return nil
 	}
-
 	nextStatesCnt := len(playStateInit.nextStates)
 	if nextStatesCnt == 0 {
 		return nil
 	}
-
 	var playStateKill *PlayState
-	// check if we need to make a kick, if kick then no any way, so just kick
 	playStateInit.Cost()
-
 	var bestAlienScores int
 	if convertWhoDo2WhoDoNext(playStateInit.whodo) == black {
 		bestAlienScores = playStateInit.cntW
@@ -605,62 +461,44 @@ func findIfKickStatesExistsBeforeOfBestState(playStateInit *PlayState) *PlayStat
 	return playStateKill
 }
 
-// func findEndStates(playStateInit *PlayState) []*PlayState {
-// 	endStates := make([]*PlayState, 0, 1000)
-// 	// visitedStates is needed to reduce cases when same state is present in the different levels and so lead to loop
-// 	visitedStates := make(map[uint32]*PlayState, 1000)
-
-// 	nextStatesFinds := make([]*PlayState, 0, 10000)
-// 	nextStatesFinds = append(nextStatesFinds, playStateInit)
-// 	cnt := len(nextStatesFinds)
-// 	for i := 0; i < cnt; i++ {
-// 		nextstate := nextStatesFinds[i]
-// 		_, visited := visitedStates[nextstate.Hashcode()]
-// 		if !visited {
-// 			// store nextstate as visited
-// 			visitedStates[nextstate.Hashcode()] = nextstate
-// 			// get count of next states
-// 			cntNext := len(nextstate.nextStates)
-// 			// if next state exist then continue deep dive into tree by next level
-// 			if cntNext != 0 {
-// 				// proceed with next states loop
-// 				cnt += cntNext
-// 				nextStatesFinds = append(nextStatesFinds, nextstate.nextStates...)
-// 			} else {
-// 				// mark state as end state for getting cost
-// 				if nextstate.Cost() > 0 {
-// 					endStates = append(endStates, nextstate)
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return endStates
-// }
-
+// Исправленная функция – рассматриваем состояния после хода текущего игрока (противник),
+// выбираем состояние с минимальным Cost() (так как Cost() оценивает позицию с точки зрения игрока,
+// чей ход в этом состоянии, а мы хотим минимизировать выгоду противника).
 func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *PlayState {
-	// find best end state
-	var costBest int = 0
-	playStateBest := endStates[0]
-	// for i := endStatesCnt - 1; i >= 0; i-- {
-	for i := range endStates {
-		log.Default().Println("endstate: ", endStates[i].ToString())
-		if endStates[i] != nil {
+	if len(endStates) == 0 {
+		return nil
+	}
 
-			cost := endStates[i].Cost()
-			if endStates[i].whodo == playStateInit.whodo && cost < costBest || endStates[i].whodo != playStateInit.whodo && cost > costBest {
-				playStateBest = endStates[i]
-				costBest = cost
-			}
+	targetWhodo := convertWhoDo2WhoDoNext(playStateInit.whodo)
+
+	var playStateBest *PlayState
+	var costBest int
+	initialized := false
+
+	for _, state := range endStates {
+		if state == nil || state.whodo != targetWhodo {
+			continue
+		}
+		cost := state.Cost()
+		if !initialized || cost < costBest {
+			playStateBest = state
+			costBest = cost
+			initialized = true
 		}
 	}
-	// back propagation from end state to init state
+
+	if playStateBest == nil {
+		playStateBest = endStates[0]
+		costBest = playStateBest.Cost()
+	}
+
 	log.Default().Println("backprop: ", playStateBest.ToString())
 	for {
-		playStateParent := playStateBest.prevState
-		if playStateParent == nil {
-			log.Fatal("Could not find parent state due to wrong caching. Please validate implementation of HashCode because len(visitedStates) > len( playStore.playStates) ")
-		} else if playStateParent.Hashcode() != playStateInit.Hashcode() {
-			playStateBest = playStateParent
+		parent := playStateBest.prevState
+		if parent == nil {
+			log.Fatal("Could not find parent state")
+		} else if parent.Hashcode() != playStateInit.Hashcode() {
+			playStateBest = parent
 			log.Default().Println("backprop: ", playStateBest.ToString())
 		} else {
 			break
@@ -668,28 +506,6 @@ func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *Play
 	}
 	return playStateBest
 }
-
-// func findBestOfTheBestPlayState(playStateInit *PlayState) *PlayState {
-// 	playStateInit.Cost()
-// 	// check if we need to make a kick, if kick then no any way, so just kick
-// 	playStateKill := findIfKickStatesExistsBeforeOfBestState(playStateInit)
-// 	if playStateKill != nil {
-// 		return playStateKill
-// 	}
-// 	// if no checkers were kicked then try find the best step
-
-// 	endStates := findEndStates(playStateInit)
-// 	if endStates == nil || len(endStates) == 0 {
-// 		return nil
-// 	}
-
-// 	playStateBest := findBestOfEndStates(playStateInit, endStates)
-// 	if playStateBest == nil {
-// 		playStateBest = playStateInit.nextStates[0]
-// 	}
-
-// 	return playStateBest
-// }
 
 func getParentState(playState *PlayState) *PlayState {
 	return playState.prevState

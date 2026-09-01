@@ -18,7 +18,6 @@ func (state *Table) convertGame2PlayState() *PlayState {
 		whodo = white
 	}
 	playStateInit := NewPlayState(whodo, 24)
-	// convert Game.State aka Table to PlayState
 	for _, tr := range state.Trs {
 		for _, td := range tr.Tds {
 			if td.Ch.Id != "" {
@@ -42,10 +41,7 @@ func (playState *PlayState) convertPlayState2Table(name string) *Table {
 		for j, td := range tr.Tds {
 			chid := playState.f2c[td.Id]
 			if chid != "" {
-				table.Trs[i].Tds[j].Ch = Checker{
-					Id: chid,
-				}
-				//log.Default().Println(td.Id, " =", chid)
+				table.Trs[i].Tds[j].Ch = Checker{Id: chid}
 			}
 		}
 	}
