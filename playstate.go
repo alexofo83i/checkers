@@ -2,6 +2,7 @@ package main
 
 import (
 	"checkers/tools"
+	"encoding/json"
 	"log"
 	"strconv"
 	"strings"
@@ -72,12 +73,34 @@ func (state *PlayState) ToString() string {
 	return state.strCached
 }
 
+func logStateJSON(state *PlayState, label string) {
+	if state == nil {
+		return
+	}
+	data := map[string]interface{}{
+		"label":    label,
+		"state_id": state.Hashcode(),
+		"whodo":    string(state.whodo),
+		"level":    state.level,
+		"cost":     state.Cost(),
+		"history":  state.history.String(),
+		"board":    state.convertPlayState2Table("temp"),
+	}
+	jsonBytes, err := json.Marshal(data)
+	if err != nil {
+		log.Default().Printf("Error marshalling state to JSON: %v", err)
+		return
+	}
+	log.Default().Printf("%s", string(jsonBytes))
+}
+
 func playWithMe(game *Game) {
 	if game == nil {
 		return
 	}
 
 	playStateInit := game.State.convertGame2PlayState()
+
 	playStateNext := getNextLevelStep(playStateInit)
 	var tableStateNew *Table
 	if playStateNext == nil {

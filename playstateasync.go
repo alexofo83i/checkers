@@ -8,15 +8,6 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// current implementation could work in parallel but couldn't exclude identical states
-// [deepLevel 1 , len(workItemQueue) =  0]
-// [deepLevel 2 , len(workItemQueue) =  7]
-// [deepLevel 3 , len(workItemQueue) =  63]
-// [deepLevel 4 , len(workItemQueue) =  528]
-// [deepLevel 5 , len(workItemQueue) =  4683]
-// [deepLevel 6 , len(workItemQueue) =  40111]
-// [deepLevel 7 , len(workItemQueue) =  370135]
-
 const (
 	MAX_WORKERS             = 100
 	MAX_CONSUMER_QUEUE_SIZE = 1000000

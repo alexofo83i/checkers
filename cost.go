@@ -458,12 +458,12 @@ func findIfKickStatesExistsBeforeOfBestState(playStateInit *PlayState) *PlayStat
 			bestAlienScores = alienScoresAfterKick
 		}
 	}
+	if playStateKill != nil {
+		logStateJSON(playStateKill, "winning_kick_move")
+	}
 	return playStateKill
 }
 
-// Исправленная функция – рассматриваем состояния после хода текущего игрока (противник),
-// выбираем состояние с минимальным Cost() (так как Cost() оценивает позицию с точки зрения игрока,
-// чей ход в этом состоянии, а мы хотим минимизировать выгоду противника).
 func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *PlayState {
 	if len(endStates) == 0 {
 		return nil
@@ -484,6 +484,8 @@ func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *Play
 			playStateBest = state
 			costBest = cost
 			initialized = true
+			// Логируем лучшее конечное состояние
+			logStateJSON(playStateBest, "best_end_state")
 		}
 	}
 
@@ -492,18 +494,22 @@ func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *Play
 		costBest = playStateBest.Cost()
 	}
 
-	log.Default().Println("backprop: ", playStateBest.ToString())
+	// Обратная пропагация
 	for {
 		parent := playStateBest.prevState
 		if parent == nil {
 			log.Fatal("Could not find parent state")
 		} else if parent.Hashcode() != playStateInit.Hashcode() {
 			playStateBest = parent
-			log.Default().Println("backprop: ", playStateBest.ToString())
+			logStateJSON(playStateBest, "backprop")
 		} else {
 			break
 		}
 	}
+
+	// Логируем выигрышный ход
+	logStateJSON(playStateBest, "winning_move")
+
 	return playStateBest
 }
 

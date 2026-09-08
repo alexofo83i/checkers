@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 
@@ -86,7 +85,6 @@ func initNewGame() *Game {
 	}
 
 	playState := game.State.convertGame2PlayState()
-	log.Default().Println(playState.ToString())
 
 	fillPlayStateByNextSteps(playState, &game.State, playState.whodo)
 
