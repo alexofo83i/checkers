@@ -1,2 +1,3 @@
 # checkers
-Golang implementation of simplest game checkers for understanding how to work with goroutines using work pools in concurrent environment and do not let CPU/MEM resources to be eaten by it
+
+A minimal Go implementation of checkers to learn goroutines and worker pools in a concurrent environment, without letting it hog CPU/memory.
