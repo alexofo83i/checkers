@@ -77,7 +77,8 @@ func initTable(isexist func(chid string) bool) *Table {
 			td := Td{
 				Id: strconv.Itoa(i) + string(j),
 			}
-			if i%2+1 == k%2+1 || i%2 == k%2 {
+			// if i%2+1 == k%2+1 || i%2 == k%2 {
+			if (i+k)%2 == 0 {
 				td.Class = "square black"
 
 				if i >= 6 && i <= 8 {

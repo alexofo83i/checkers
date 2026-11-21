@@ -23,6 +23,11 @@ type PlayState struct {
 	history    strings.Builder
 }
 
+func (state *PlayState) toCompactState() *CompactState {
+	cState := NewCompactState(state)
+	return cState
+}
+
 func (state *PlayState) ToString() string {
 	if state.strCached != "" {
 		return state.strCached
@@ -48,7 +53,8 @@ func (state *PlayState) ToString() string {
 	for i := 8; i >= 1; i-- {
 		k := 1
 		for j := 'a'; j <= 'h'; j++ {
-			if i%2+1 == k%2+1 || i%2 == k%2 {
+			//if i%2+1 == k%2+1 || i%2 == k%2 {
+			if (i+k)%2 == 0 {
 				chId := tools.IntToString(i) + string(j)
 				ch, isChecker := state.f2c[chId]
 				if isChecker {
@@ -104,7 +110,7 @@ func playWithMe(game *Game) {
 	playStateNext := getNextLevelStep(playStateInit)
 	var tableStateNew *Table
 	if playStateNext == nil {
-		log.Default().Println("sorry we could not calculate next step, so returned the same", playStateInit.ToString())
+		log.Default().Println("sorry we could not calculate next step, so return the same", playStateInit.ToString())
 		playStateNext = playStateInit
 	}
 	tableStateNew = playStateNext.convertPlayState2Table(game.State.Name)
