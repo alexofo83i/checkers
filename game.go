@@ -70,7 +70,7 @@ func initGameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	game := getGameById("nil")
-	renderTemplate(w, table_html, game.State)
+	renderTemplate(w, game.State)
 }
 
 func initNewGame() *Game {

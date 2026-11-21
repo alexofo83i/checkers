@@ -41,8 +41,8 @@ type NextStep struct {
 	NextKicks []string `json:"kicks"`
 }
 
-func renderTemplate(wr io.Writer, tmpl string, data any) {
-	err := templates.ExecuteTemplate(wr, tmpl, data)
+func renderTemplate(wr io.Writer, data any) {
+	err := templates.ExecuteTemplate(wr, table_html, data)
 	if err != nil {
 		panic(err)
 	}
