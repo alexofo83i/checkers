@@ -23,11 +23,6 @@ type PlayState struct {
 	history    strings.Builder
 }
 
-func (state *PlayState) toCompactState() *CompactState {
-	cState := NewCompactState(state)
-	return cState
-}
-
 func (state *PlayState) ToString() string {
 	if state.strCached != "" {
 		return state.strCached
@@ -41,6 +36,11 @@ func (state *PlayState) ToString() string {
 	b.WriteString(tools.UInt32ToString(state.Hashcode()))
 	b.WriteString(", cost=")
 	b.WriteString(tools.IntToString(state.Cost()))
+
+	var cState CompactState = *state.packState()
+	b.WriteString(", packed = ")
+	b.WriteString(tools.UInt64ToString(cState.packed))
+
 	b.WriteString(", history=")
 	b.WriteString(state.history.String())
 	b.WriteString("\n")

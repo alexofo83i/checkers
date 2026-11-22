@@ -13,7 +13,7 @@ const (
 	MAX_CONSUMER_QUEUE_SIZE = 1000000
 	MAX_PRODUCER_QUEUE_SIZE = 1000000
 	MAX_FINAL_QUEUE_SIZE    = MAX_WORKERS + 1
-	MAX_TIME_TO_WAIT        = 30 * time.Second
+	MAX_TIME_TO_WAIT        = 5 * time.Second
 	MAX_LEVEL               = 4
 )
 
@@ -151,6 +151,8 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 			playStateBest = playStateInit.nextStates[0]
 			log.Default().Println("ohh!! findBestOfEndStates returned nil, so getting playStateInit.nextStates[0]", playStateBest.ToString())
 		} else {
+			cState := playStateBest.packState()
+			playStateBest = cState.unpackState()
 			log.Default().Println("yeaahooo!! findBestOfEndStates returned ", playStateBest.ToString())
 		}
 	}
