@@ -458,9 +458,9 @@ func findIfKickStatesExistsBeforeOfBestState(playStateInit *PlayState) *PlayStat
 			bestAlienScores = alienScoresAfterKick
 		}
 	}
-	if playStateKill != nil {
-		logStateJSON(playStateKill, "winning_kick_move")
-	}
+	// if playStateKill != nil {
+	// 	logStateJSON(playStateKill, "winning_kick_move")
+	// }
 	return playStateKill
 }
 
@@ -485,7 +485,7 @@ func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *Play
 			costBest = cost
 			initialized = true
 			// Логируем лучшее конечное состояние
-			logStateJSON(playStateBest, "best_end_state")
+			//logStateJSON(playStateBest, "best_end_state")
 		}
 	}
 
@@ -501,14 +501,14 @@ func findBestOfEndStates(playStateInit *PlayState, endStates []*PlayState) *Play
 			log.Fatal("Could not find parent state")
 		} else if parent.Hashcode() != playStateInit.Hashcode() {
 			playStateBest = parent
-			logStateJSON(playStateBest, "backprop")
+			//logStateJSON(playStateBest, "backprop")
 		} else {
 			break
 		}
 	}
 
 	// Логируем выигрышный ход
-	logStateJSON(playStateBest, "winning_move")
+	//logStateJSON(playStateBest, "winning_move")
 
 	return playStateBest
 }
