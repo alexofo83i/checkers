@@ -21,6 +21,7 @@ type PlayState struct {
 	level      int
 	strCached  string
 	history    strings.Builder
+	packed     uint64
 }
 
 func (state *PlayState) ToString() string {
@@ -33,7 +34,7 @@ func (state *PlayState) ToString() string {
 	b.WriteString(", whodo=")
 	b.WriteString(string(state.whodo))
 	b.WriteString(", hashcode=")
-	b.WriteString(tools.UInt32ToString(state.Hashcode()))
+	b.WriteString(tools.UInt64ToString(state.Hashcode()))
 	b.WriteString(", cost=")
 	b.WriteString(tools.IntToString(state.Cost()))
 
@@ -170,4 +171,13 @@ func (playState *PlayState) MakeNextKick(ch string, fieldTo *Field, ch2kick stri
 	delete(playStateKick.c2f, ch2kick)
 
 	return playStateKick
+}
+
+func (state *PlayState) getCachedPacked() uint64 {
+
+	if state.packed == 0 {
+		state.packed = state.packState().packed
+	}
+
+	return state.packed
 }

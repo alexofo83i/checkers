@@ -135,7 +135,7 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 	playStateBest := findIfKickStatesExistsBeforeOfBestState(playStateInit)
 	if playStateBest == nil {
 		log.Default().Println("findIfKickStatesExistsBeforeOfBestState returned nil")
-		endStatesMap := make(map[uint32]*PlayState, len(chanFinalPlayStatesQueue))
+		endStatesMap := make(map[uint64]*PlayState, len(chanFinalPlayStatesQueue))
 		for i := 0; i <= len(chanFinalPlayStatesQueue); i++ {
 			endState := <-chanFinalPlayStatesQueue
 			if endState != nil {
