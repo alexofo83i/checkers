@@ -111,7 +111,7 @@ func (state *PlayState) packState() *CompactState {
 	cState := CompactState{whodo: state.whodo, cost: state.cost}
 	var packed uint64
 	for k, chId := range DarkFields {
-		index := k + 1
+		index := k
 		ch, isChecker := state.f2c[chId]
 		var bits uint64
 		if isChecker {
@@ -138,7 +138,7 @@ func (cState *CompactState) unpackState() *PlayState {
 
 	w, b := 1, 1
 	for k, chId := range DarkFields {
-		index := k + 1
+		index := k
 		bits := (cState.packed >> (index * 2)) & 0b11
 
 		switch bits {
