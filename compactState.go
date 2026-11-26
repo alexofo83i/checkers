@@ -4,87 +4,12 @@ import (
 	"checkers/tools"
 )
 
-// // CellType описывает содержимое клетки
-// type CellType uint8
-
-// const (
-// 	Empty      CellType = 0b00 // 0: пусто
-// 	WhitePiece CellType = 0b01 // 1: белая шашка
-// 	BlackPiece CellType = 0b11 // 3: чёрная шашка (цвет+занятость)
-// )
-
-// // Board — доска 8x8. Индексация: board[y][x], где x,y ∈ [0..7]
-// type Board [8][8]CellType
-
-// // PackBoard упаковывает состояние 32 тёмных клеток в uint64.
-// // Кодирование: 2 бита на клетку.
-// //
-// //	бит 0: занятость (1 — есть шашка)
-// //	бит 1: цвет     (1 — чёрная, 0 — белая)
-// //
-// // Порядок обхода: по строкам y=0..7, внутри строки x=0..7,
-// // берутся только тёмные клетки (где (x+y)%2 == 1).
-// func PackBoard(b Board) uint64 {
-// 	var packed uint64 = 0
-// 	index := 0 // номер тёмной клетки (0..31)
-
-// 	for y := 0; y < 8; y++ {
-// 		for x := 0; x < 8; x++ {
-// 			// пропускаем светлые клетки
-// 			if (x+y)%2 == 0 {
-// 				continue
-// 			}
-
-// 			var bits uint64
-// 			switch b[y][x] {
-// 			case WhitePiece:
-// 				bits = 0b01 // занято=1, цвет=0
-// 			case BlackPiece:
-// 				bits = 0b11 // занято=1, цвет=1
-// 			case Empty:
-// 				bits = 0b00 // занято=0, цвет=0
-// 			}
-
-// 			// сдвигаем 2 бита на позицию index*2 и вставляем через |
-// 			packed |= bits << (index * 2)
-// 			index++
-// 		}
-// 	}
-
-// 	return packed
-// }
-
-// // UnpackBoard — обратная операция: восстанавливает доску из uint64
-// func UnpackBoard(packed uint64) Board {
-// 	var b Board
-// 	index := 0
-
-// 	for y := 0; y < 8; y++ {
-// 		for x := 0; x < 8; x++ {
-// 			if (x+y)%2 == 0 {
-// 				continue
-// 			}
-
-// 			bits := (packed >> (index * 2)) & 0b11
-// 			switch bits {
-// 			case 0b01:
-// 				b[y][x] = WhitePiece
-// 			case 0b11:
-// 				b[y][x] = BlackPiece
-// 			default:
-// 				b[y][x] = Empty
-// 			}
-// 			index++
-// 		}
-// 	}
-
-// 	return b
-// }
-
 type CompactState struct {
-	whodo  uint8
-	cost   int
-	packed uint64
+	ID    int64
+	Whodo uint8
+	Cost  int
+	Place uint32
+	Color uint32
 }
 
 // There are 32 fields and only 2 bits per field in uint64.
@@ -107,43 +32,66 @@ var DarkFields = [32]string{
 	"1a", "1c", "1e", "1g",
 }
 
+const signBit = uint64(1) << 63
+
+// EncodeID: (place, color) -> int64 PK, биекция без коллизий
+func EncodeID(place, color uint32) int64 {
+	packed := (uint64(place) << 32) | uint64(color) // 0 .. 2^64-1
+	return int64(packed - signBit)                  // -2^63 .. 2^63-1
+}
+
+// DecodeID: int64 PK -> (place, color)
+func DecodeID(id int64) (place, color uint32) {
+	packed := uint64(id) + signBit // 0 .. 2^64-1
+	return uint32(packed >> 32), uint32(packed & 0xFFFFFFFF)
+}
+
 func (state *PlayState) packState() *CompactState {
-	cState := CompactState{whodo: state.whodo, cost: state.cost}
-	var packed uint64
+	var place, color uint32
 	for k, chId := range DarkFields {
-		index := k
 		ch, isChecker := state.f2c[chId]
-		var bits uint64
-		if isChecker {
-			if ch[0] == 'b' {
-				bits = 0b11
-			} else {
-				bits = 0b01
-			}
+		if !isChecker {
+			continue
 		}
-		// else bits остаётся 0b00
-		packed |= bits << (index * 2)
+		var bits uint32
+		if ch[0] == 'b' {
+			bits = 0b11
+		} else {
+			bits = 0b01
+		}
+		if k < 16 {
+			place |= bits << (k * 2)
+		} else {
+			color |= bits << ((k - 16) * 2)
+		}
 	}
-	cState.packed = packed
-	return &cState
+	return &CompactState{
+		ID:    EncodeID(place, color),
+		Whodo: state.whodo,
+		Cost:  state.cost,
+		Place: place,
+		Color: color,
+	}
 }
 
 func (cState *CompactState) unpackState() *PlayState {
 	state := &PlayState{
 		f2c:   make(map[string]string),
 		c2f:   make(map[string]string),
-		whodo: cState.whodo,
-		cost:  cState.cost,
+		whodo: cState.Whodo,
+		cost:  cState.Cost,
 	}
-
 	w, b := 1, 1
 	for k, chId := range DarkFields {
-		index := k
-		bits := (cState.packed >> (index * 2)) & 0b11
-
+		var bits uint32
+		if k < 16 {
+			bits = (cState.Place >> (k * 2)) & 0b11
+		} else {
+			bits = (cState.Color >> ((k - 16) * 2)) & 0b11
+		}
 		switch bits {
 		case 0b00:
-			// пусто — ничего не делаем
+			// пусто
 		case 0b11:
 			ch := "b" + tools.IntToString(b)
 			b++
@@ -154,10 +102,9 @@ func (cState *CompactState) unpackState() *PlayState {
 			w++
 			state.f2c[chId] = ch
 			state.c2f[ch] = chId
-		default: // 0b10
+		default:
 			panic("corrupted packed state: bits 0b10")
 		}
 	}
-
 	return state
 }

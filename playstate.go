@@ -21,7 +21,7 @@ type PlayState struct {
 	level      int
 	strCached  string
 	history    strings.Builder
-	packed     uint64
+	ID         int64
 }
 
 func (state *PlayState) ToString() string {
@@ -34,13 +34,13 @@ func (state *PlayState) ToString() string {
 	b.WriteString(", whodo=")
 	b.WriteString(string(state.whodo))
 	b.WriteString(", hashcode=")
-	b.WriteString(tools.UInt64ToString(state.Hashcode()))
+	b.WriteString(tools.Int64ToString(state.Hashcode()))
 	b.WriteString(", cost=")
 	b.WriteString(tools.IntToString(state.Cost()))
 
 	var cState CompactState = *state.packState()
 	b.WriteString(", packed = ")
-	b.WriteString(tools.UInt64ToString(cState.packed))
+	b.WriteString(tools.Int64ToString(cState.ID))
 
 	b.WriteString(", history=")
 	b.WriteString(state.history.String())
@@ -173,11 +173,11 @@ func (playState *PlayState) MakeNextKick(ch string, fieldTo *Field, ch2kick stri
 	return playStateKick
 }
 
-func (state *PlayState) getCachedPacked() uint64 {
+func (state *PlayState) getCachedID() int64 {
 
-	if state.packed == 0 {
-		state.packed = state.packState().packed
+	if state.ID == 0 {
+		state.ID = state.packState().ID
 	}
 
-	return state.packed
+	return state.ID
 }
