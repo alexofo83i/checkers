@@ -108,6 +108,8 @@ func playWithMe(game *Game) {
 
 	playStateInit := game.State.convertGame2PlayState()
 
+	// postgresql: here a few levels of state should be loaded from database into cache ( playstore )
+
 	playStateNext := getNextLevelStep(playStateInit)
 	var tableStateNew *Table
 	if playStateNext == nil {

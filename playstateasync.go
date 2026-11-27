@@ -157,5 +157,7 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 		}
 	}
 
+	// postgresql: here all calculated states should be stored into database from cache ( playstore )
+
 	return playStateBest
 }
