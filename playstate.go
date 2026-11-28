@@ -108,6 +108,10 @@ func playWithMe(game *Game) {
 
 	playStateInit := game.State.convertGame2PlayState()
 
+	// preparing cache before calculations
+	targetWhodo := convertWhoDo2WhoDoNext(playStateInit.whodo)
+	getStatesByParent(playStateInit, targetWhodo)
+
 	// postgresql: here a few levels of state should be loaded from database into cache ( playstore )
 
 	playStateNext := getNextLevelStep(playStateInit)

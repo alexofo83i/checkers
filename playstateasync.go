@@ -154,10 +154,11 @@ func getNextLevelStep(playStateInit *PlayState) *PlayState {
 			cState := playStateBest.packState()
 			playStateBest = cState.unpackState()
 			log.Default().Println("yeaahooo!! findBestOfEndStates returned ", playStateBest.ToString())
+			// postgresql: here all calculated states should be stored into database from cache ( playstore )
+			// so doing it in asynchronous mode: no matter to wait a storing into database
+			go putStatesByParent(playStateInit, playStateInit.whodo, endStatesSlice)
 		}
 	}
-
-	// postgresql: here all calculated states should be stored into database from cache ( playstore )
 
 	return playStateBest
 }
